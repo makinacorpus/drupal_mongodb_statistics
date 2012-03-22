@@ -50,10 +50,14 @@ function mongodb_statistics_node_tracker() {
         $logs = array();
         foreach ($cursor as $log) {
           $rows[] = array(
-            array('data' => format_date($log['timestamp'], 'short'), 'class' => array('nowrap')),
-            _mongodb_statistics_link($log['url']),
-            theme('username', array('account' => (object) $log)),
-            l(t('details'), 'admin/reports/stats-mongodb/hits/access/' . $log['_id']),
+            array(
+              'data' => 
+                 empty($log['timestamp'])? t('never') : format_date($log['timestamp'], 'short'),
+                 'class' => array('nowrap') 
+              ),
+              _mongodb_statistics_link($log['url']),
+              theme('username', array('account' => (object) $log)),
+              l(t('details'), 'admin/reports/stats-mongodb/hits/access/' . $log['_id']),
           );
           $logs[] = $log;
         }

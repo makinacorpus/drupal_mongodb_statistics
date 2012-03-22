@@ -31,7 +31,7 @@ function theme_mongodb_statistics_node_counters($variables) {
     t('Total views count: @count', array('@count' => $record['totalcount'])),
     t('Day generation: @count', array('@count' => $record['daygen'])),
     t('Total generation: @count', array('@count' => $record['totalgen'])),
-    t('Last access: @date', array('@date' => format_date($record['timestamp'], 'short'))),
+    t('Last access: @date', array('@date' => empty($record['timestamp'])? t('never') : format_date($record['timestamp'], 'short'))),
   );
   $build['mongodb_counters_list'] = array(
     '#type' => 'markup',
