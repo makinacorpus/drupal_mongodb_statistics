@@ -14,7 +14,7 @@
 
 // if this module is not installed in sites/all/modules/*/mongodb_statistics then fix that relative path to the root of Drupal (where we can find the index.php file)
 define('MONGODB_STATISTICS_RELATIVE_PATH_TO_ROOT','../../../../..');
- 
+
 if (0===count($_POST)) {
   echo "this should be used with POST query only, sorry.";
   exit(0);
@@ -30,9 +30,34 @@ header("Cache-Control: must-revalidate");
 header("Content-Length: 13");
 header("Connection: close");
 print("/* mstats */\n");
-ob_end_flush();
-ob_flush();
-flush();
+
+// Code stolen to Symfony 2 framework.
+// @see https://github.com/symfony/HttpFoundation/blob/master/Response.php#L315
+// For more details.
+if (function_exists('fastcgi_finish_request')) {
+  fastcgi_finish_request();
+} elseif ('cli' !== PHP_SAPI) {
+  // ob_get_level() never returns 0 on some Windows configurations, so if
+  // the level is the same two times in a row, the loop should be stopped.
+  $previous = null;
+  $obStatus = ob_get_status(1);
+  $is54 = version_compare(PHP_VERSION, '5.4', '>=');
+  while (($level = ob_get_level()) > 0 && $level !== $previous) {
+    $previous = $level;
+    if ($obStatus[$level - 1]) {
+      if ($is54) {
+        if (isset($obStatus[$level - 1]['flags']) && ($obStatus[$level - 1]['flags'] & PHP_OUTPUT_HANDLER_REMOVABLE)) {
+          ob_end_flush();
+        }
+      } else {
+        if (isset($obStatus[$level - 1]['del']) && $obStatus[$level - 1]['del']) {
+          ob_end_flush();
+        }
+      }
+    }
+  }
+  flush();
+}
 
 chdir(MONGODB_STATISTICS_RELATIVE_PATH_TO_ROOT);
 define('DRUPAL_ROOT', getcwd());
